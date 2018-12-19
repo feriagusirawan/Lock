@@ -1,5 +1,6 @@
 package com.lockcode.root.lock;
 
+import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -27,15 +28,17 @@ import android.widget.Toast;
 //http://square.github.io/okhttp/
 public class MainActivity extends AppCompatActivity {
 
+    ProgressDialog pDialog;
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     final String strURL = "https://partnerapi.igloohome.co/v1/locks/IGB2-C2A4P2_69ac6f/lockcodes";
     final String strApikey = "KAMISPACE-7det1dtlI05Ya7lHWGV90sQn62AjeSiq";
     final String strBodyJson = "{\n" +
             "\"description\":\"testing\",\n" +
-            "\"startDate\":\"2019-12-12T12:00:00\", \n" +
+            "\"startDate\":\"2019-12-29T04:00:00\", \n" +
             "\"durationCode\": 1 \n" +
             "}\n";
+
 
 
     @Override
@@ -52,8 +55,15 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                simpleProgressBar.setVisibility(View.VISIBLE);
-//        AsyncTask asyncTask = new AsyncTask() {
+
+                pDialog = new ProgressDialog(MainActivity.this);
+                pDialog.setMessage("Mohon Tunggu..");
+                pDialog.setIndeterminate(true);
+                pDialog.setCancelable(true);
+                pDialog.show();
+
+//                simpleProgressBar.setVisibility(View.VISIBLE);
+//              AsyncTask asyncTask = new AsyncTask() {
                 AsyncTask asyncTask = new AsyncTask<String, Object, String>() {
 
 
@@ -69,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
                                 .addHeader("X-IGLOOHOME-APIKEY", strApikey)
                                 .post(body)
                                 .build();
+
 
 //        Response response = null;
                         Response response;
@@ -88,11 +99,21 @@ public class MainActivity extends AppCompatActivity {
 //          protected void onPostExecute(Object code) {
 //          textView.setText(code.toString());
                     protected void onPostExecute(String strResponse) {
-                        simpleProgressBar.setVisibility(View.GONE);
+//                        simpleProgressBar.setVisibility(View.GONE);
+
+//                      Dialog
+                        super.onPostExecute(strResponse);
+                        pDialog.dismiss();
+                        if(strResponse.equalsIgnoreCase("Exception Caught")){
+                            Toast.makeText(MainActivity.this, "Unable to connect to server,please check your internet connection!", Toast.LENGTH_LONG).show();
+                        }
+//                      --------------------------
+
                         try {
                             JSONObject jsonObjectResponse = new JSONObject(strResponse);
                             String code = jsonObjectResponse.getString("code");
                             textView.setText(code);
+
                         } catch (JSONException e) {
                             e.printStackTrace();
                             textView.setText("-");
@@ -103,8 +124,11 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+
     }
 }
+
 
 //Toast.makeText(getApplication(), "You don't have connection.", Toast.LENGTH_SHORT).show();
 //https://github.com/dinogregorich/Android_GetJsonDataFromRestAPI
